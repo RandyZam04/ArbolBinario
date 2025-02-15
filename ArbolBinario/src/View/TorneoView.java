@@ -21,11 +21,12 @@ public class TorneoView {
             System.out.println("2. Editar jugador");
             System.out.println("3. Eliminar jugador");
             System.out.println("4. Mostrar jugadores");
-            System.out.println("5. Mostrar jugadores eliminados");
-            System.out.println("6. Salir");
+            System.out.println("5. Registrar resultado de partido");
+            System.out.println("6. Deshacer último resultado");
+            System.out.println("7. Salir");
             System.out.print("Elige una opción: ");
             int opcion = scanner.nextInt();
-            scanner.nextLine();  // Limpiar el buffer
+            scanner.nextLine();
 
             switch (opcion) {
                 case 1:
@@ -41,9 +42,12 @@ public class TorneoView {
                     mostrarJugadores();
                     break;
                 case 5:
-                    mostrarEliminados();
+                    registrarResultado();
                     break;
                 case 6:
+                    deshacerResultado();
+                    break;
+                case 7:
                     System.out.println("¡Hasta luego!");
                     return;
                 default:
@@ -52,25 +56,47 @@ public class TorneoView {
         }
     }
 
-    // Insertar un nuevo jugador
+
+    // Insertar un nuevo jugador con validación de ID único
     private void insertarJugador() {
+        int id;
+        while (true) {
+            System.out.print("Ingrese el ID del jugador: ");
+            id = scanner.nextInt();
+            scanner.nextLine();
+            if (controller.jugadorExiste(id)) {
+                System.out.println("El ID ya existe. Por favor, ingrese un ID único.");
+            } else {
+                break;
+            }
+        }
+
         System.out.print("Ingrese el nombre del jugador: ");
         String nombre = scanner.nextLine();
         System.out.print("Ingrese la edad del jugador: ");
         int edad = scanner.nextInt();
-        scanner.nextLine();  // Limpiar el buffer
-        controller.insertarJugador(nombre, edad);
+        System.out.print("Ingrese el ranking del jugador: ");
+        int ranking = scanner.nextInt();
+        System.out.print("Ingrese la puntuación promedio del jugador: ");
+        double puntuacionPromedio = scanner.nextDouble();
+        scanner.nextLine();
+        controller.insertarJugador(id, nombre, edad, ranking, puntuacionPromedio);
         System.out.println("Jugador insertado correctamente.");
     }
 
     // Editar la edad de un jugador
     private void editarJugador() {
-        System.out.print("Ingrese el nombre del jugador a editar: ");
-        String nombre = scanner.nextLine();
+        System.out.print("Ingrese el ID del jugador a editar: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
         System.out.print("Ingrese la nueva edad: ");
         int nuevaEdad = scanner.nextInt();
-        scanner.nextLine();  // Limpiar el buffer
-        boolean exito = controller.editarJugador(nombre, nuevaEdad);
+        System.out.print("Ingrese el nuevo ranking: ");
+        int nuevoRanking = scanner.nextInt();
+        System.out.print("Ingrese la nueva puntuación promedio: ");
+        double nuevaPuntuacion = scanner.nextDouble();
+        scanner.nextLine();
+        boolean exito = controller.editarJugador(id, nuevaEdad, nuevoRanking, nuevaPuntuacion);
         if (exito) {
             System.out.println("Jugador editado correctamente.");
         } else {
@@ -80,9 +106,10 @@ public class TorneoView {
 
     // Eliminar un jugador
     private void eliminarJugador() {
-        System.out.print("Ingrese el nombre del jugador a eliminar: ");
-        String nombre = scanner.nextLine();
-        controller.eliminarJugador(nombre);
+        System.out.print("Ingrese el ID del jugador a eliminar: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
+        controller.eliminarJugador(id);
         System.out.println("Jugador eliminado correctamente.");
     }
 
@@ -92,9 +119,21 @@ public class TorneoView {
         controller.mostrarJugadores();
     }
 
-    // Mostrar jugadores eliminados
-    private void mostrarEliminados() {
-        System.out.println("\n--- Jugadores Eliminados ---");
-        controller.mostrarEliminados();
+
+    // Registrar resultado de partido
+    private void registrarResultado() {
+        System.out.print("Ingrese el ID del jugador ganador: ");
+        int idGanador = scanner.nextInt();
+        System.out.print("Ingrese el ID del jugador perdedor: ");
+        int idPerdedor = scanner.nextInt();
+        scanner.nextLine();
+        controller.registrarResultado(idGanador, idPerdedor);
+        System.out.println("Resultado registrado correctamente.");
     }
+
+    // Deshacer el último resultado
+    private void deshacerResultado() {
+        controller.deshacerResultado();
+    }
+
 }

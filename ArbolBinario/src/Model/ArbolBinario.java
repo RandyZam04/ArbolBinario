@@ -1,90 +1,95 @@
 package Model;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+
 public class ArbolBinario {
-	private Nodo raiz;
+    private Nodo raiz;
     private ListaEnlazada listaEliminados;
+    private Deque<String> historialResultados;
+    private Queue<Nodo> partidosPendientes;
+    private Map<Integer, Nodo> jugadores;
 
     public ArbolBinario() {
         this.raiz = null;
-        this.listaEliminados = new ListaEnlazada();
+        this.listaEliminados = new ListaEnlazada();  // Asegúrate de que solo se crea aquí
+        this.historialResultados = new ArrayDeque<>();
+        this.partidosPendientes = new LinkedList<>();
+        this.jugadores = new HashMap<>();
     }
 
-    // Insertar un jugador en el árbol
-    public void insertar(String nombre, int edad) {
-        raiz = insertarRec(raiz, nombre, edad);
+
+    public void insertar(int id, String nombre, int edad, int ranking, double puntuacionPromedio) {
+        if (jugadores.containsKey(id)) {
+            System.out.println("Error: ID ya existente.");
+            return;
+        }
+        Nodo nuevo = new Nodo(id, nombre, edad, ranking, puntuacionPromedio);
+        jugadores.put(id, nuevo);
+        raiz = insertarRec(raiz, nuevo);
     }
 
-    private Nodo insertarRec(Nodo actual, String nombre, int edad) {
+    private Nodo insertarRec(Nodo actual, Nodo nuevo) {
         if (actual == null) {
-            return new Nodo(nombre, edad);
+            return nuevo;
         }
 
-        if (edad < actual.edad) {
-            actual.izquierda = insertarRec(actual.izquierda, nombre, edad);
+        if (nuevo.ranking < actual.ranking) {
+            actual.izquierda = insertarRec(actual.izquierda, nuevo);
         } else {
-            actual.derecha = insertarRec(actual.derecha, nombre, edad);
+            actual.derecha = insertarRec(actual.derecha, nuevo);
         }
         return actual;
     }
 
-    // Buscar un jugador en el árbol
-    public Nodo buscar(String nombre) {
-        return buscarRec(raiz, nombre);
+    public Nodo buscar(int id) {
+        return jugadores.get(id);
     }
 
-    private Nodo buscarRec(Nodo actual, String nombre) {
-        if (actual == null || actual.nombre.equals(nombre)) {
-            return actual;
-        }
-
-        if (nombre.compareTo(actual.nombre) < 0) {
-            return buscarRec(actual.izquierda, nombre);
-        } else {
-            return buscarRec(actual.derecha, nombre);
-        }
-    }
-
-    // Editar un jugador (cambiar su edad)
-    public boolean editarJugador(String nombre, int nuevaEdad) {
-        Nodo jugador = buscar(nombre);
+    public boolean editarJugador(int id, int nuevaEdad, int nuevoRanking, double nuevaPuntuacion) {
+        Nodo jugador = buscar(id);
         if (jugador != null) {
             jugador.edad = nuevaEdad;
+            jugador.ranking = nuevoRanking;
+            jugador.puntuacionPromedio = nuevaPuntuacion;
             return true;
         }
         return false;
     }
 
-    // Eliminar un jugador y moverlo a la lista enlazada
-    public void eliminar(String nombre) {
-        Nodo jugador = buscar(nombre);
+    public void eliminar(int id) {
+        Nodo jugador = buscar(id);
         if (jugador != null) {
             listaEliminados.agregarEliminado(jugador.nombre, jugador.edad);
-            raiz = eliminarRec(raiz, nombre);
+            jugadores.remove(id);
+            raiz = eliminarRec(raiz, id);
+            jugador.estado = "Eliminado";
         }
     }
 
-    private Nodo eliminarRec(Nodo actual, String nombre) {
+    private Nodo eliminarRec(Nodo actual, int id) {
         if (actual == null) {
             return null;
         }
-
-        if (nombre.compareTo(actual.nombre) < 0) {
-            actual.izquierda = eliminarRec(actual.izquierda, nombre);
-        } else if (nombre.compareTo(actual.nombre) > 0) {
-            actual.derecha = eliminarRec(actual.derecha, nombre);
+        if (id < actual.id) {
+            actual.izquierda = eliminarRec(actual.izquierda, id);
+        } else if (id > actual.id) {
+            actual.derecha = eliminarRec(actual.derecha, id);
         } else {
-            if (actual.izquierda == null && actual.derecha == null) {
-                return null;
-            }
-            if (actual.izquierda == null) {
-                return actual.derecha;
-            } else if (actual.derecha == null) {
-                return actual.izquierda;
-            }
+            if (actual.izquierda == null) return actual.derecha;
+            if (actual.derecha == null) return actual.izquierda;
             Nodo sucesor = encontrarMin(actual.derecha);
+            actual.id = sucesor.id;
             actual.nombre = sucesor.nombre;
             actual.edad = sucesor.edad;
-            actual.derecha = eliminarRec(actual.derecha, sucesor.nombre);
+            actual.ranking = sucesor.ranking;
+            actual.puntuacionPromedio = sucesor.puntuacionPromedio;
+            actual.estado = sucesor.estado;
+            actual.derecha = eliminarRec(actual.derecha, sucesor.id);
         }
         return actual;
     }
@@ -96,21 +101,50 @@ public class ArbolBinario {
         return actual;
     }
 
-    // Mostrar los jugadores en orden
-    public void enOrden() {
-        enOrdenRec(raiz);
-    }
-
-    private void enOrdenRec(Nodo actual) {
-        if (actual != null) {
-            enOrdenRec(actual.izquierda);
-            System.out.println("Nombre: " + actual.nombre + ", Edad: " + actual.edad);
-            enOrdenRec(actual.derecha);
+    public void registrarResultado(int idGanador, int idPerdedor) {
+        Nodo ganador = buscar(idGanador);
+        Nodo perdedor = buscar(idPerdedor);
+        if (ganador != null && perdedor != null) {
+            perdedor.estado = "Eliminado";
+            listaEliminados.agregarEliminado(perdedor.nombre, perdedor.edad);
+            historialResultados.push("Ganador: " + ganador.id + " - Perdedor: " + perdedor.id);
+            partidosPendientes.add(ganador);
+        } else {
+            System.out.println("Error: Uno o ambos jugadores no encontrados.");
         }
     }
 
-    // Mostrar los jugadores eliminados
-    public void mostrarEliminados() {
-        listaEliminados.mostrarEliminados();
+
+    public void deshacerResultado() {
+        if (!historialResultados.isEmpty()) {
+            String resultado = historialResultados.pop();
+            System.out.println("Se deshizo el resultado: " + resultado);
+            String[] partes = resultado.split(" - ");
+            int idPerdedor = Integer.parseInt(partes[1].split(": ")[1]);
+            Nodo jugador = buscar(idPerdedor);
+            if (jugador != null) {
+                jugador.estado = "Activo";
+                listaEliminados.removerEliminado(jugador.nombre);
+                insertar(jugador.id, jugador.nombre, jugador.edad, jugador.ranking, jugador.puntuacionPromedio);
+            }
+        } else {
+            System.out.println("No hay resultados para deshacer.");
+        }
+    }
+
+    public String obtenerUltimoResultado() {
+        return historialResultados.peek();
+    }
+
+    public void mostrarArbol() {
+        mostrarArbolRec(raiz, 0);
+    }
+
+    private void mostrarArbolRec(Nodo actual, int nivel) {
+        if (actual != null) {
+            mostrarArbolRec(actual.derecha, nivel + 1);
+            System.out.println(" ".repeat(nivel * 4) + "-> " + actual.nombre + " (ID: " + actual.id + ", Ranking: " + actual.ranking + ", Estado: " + actual.estado + ")");
+            mostrarArbolRec(actual.izquierda, nivel + 1);
+        }
     }
 }

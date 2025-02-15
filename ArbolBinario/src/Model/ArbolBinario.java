@@ -1,10 +1,12 @@
 package Model;
 
 public class ArbolBinario {
-    private Nodo raiz;
+	private Nodo raiz;
+    private ListaEnlazada listaEliminados;
 
     public ArbolBinario() {
         this.raiz = null;
+        this.listaEliminados = new ListaEnlazada();
     }
 
     // Insertar un jugador en el árbol
@@ -52,9 +54,13 @@ public class ArbolBinario {
         return false;
     }
 
-    // Eliminar un jugador
+    // Eliminar un jugador y moverlo a la lista enlazada
     public void eliminar(String nombre) {
-        raiz = eliminarRec(raiz, nombre);
+        Nodo jugador = buscar(nombre);
+        if (jugador != null) {
+            listaEliminados.agregarEliminado(jugador.nombre, jugador.edad);
+            raiz = eliminarRec(raiz, nombre);
+        }
     }
 
     private Nodo eliminarRec(Nodo actual, String nombre) {
@@ -67,17 +73,14 @@ public class ArbolBinario {
         } else if (nombre.compareTo(actual.nombre) > 0) {
             actual.derecha = eliminarRec(actual.derecha, nombre);
         } else {
-            // Caso 1: Nodo sin hijos
             if (actual.izquierda == null && actual.derecha == null) {
                 return null;
             }
-            // Caso 2: Un solo hijo
             if (actual.izquierda == null) {
                 return actual.derecha;
             } else if (actual.derecha == null) {
                 return actual.izquierda;
             }
-            // Caso 3: Dos hijos
             Nodo sucesor = encontrarMin(actual.derecha);
             actual.nombre = sucesor.nombre;
             actual.edad = sucesor.edad;
@@ -104,5 +107,10 @@ public class ArbolBinario {
             System.out.println("Nombre: " + actual.nombre + ", Edad: " + actual.edad);
             enOrdenRec(actual.derecha);
         }
+    }
+
+    // Mostrar los jugadores eliminados
+    public void mostrarEliminados() {
+        listaEliminados.mostrarEliminados();
     }
 }

@@ -7,6 +7,7 @@ public class ListaEnlazada {
         this.cabeza = null;
     }
 
+    // Agregar un jugador eliminado a la lista
     public void agregarEliminado(String nombre, int edad) {
         NodoEliminado nuevoNodo = new NodoEliminado(nombre, edad);
         if (cabeza == null) {
@@ -19,8 +20,6 @@ public class ListaEnlazada {
             temp.siguiente = nuevoNodo;
         }
     }
-
-
 
     // Remover un jugador eliminado
     public void removerEliminado(String nombre) {
@@ -41,8 +40,22 @@ public class ListaEnlazada {
         }
     }
 
+    // Mostrar la lista de eliminados
+    public void mostrarEliminados() {
+        NodoEliminado temp = cabeza;
+        if (temp == null) {
+            System.out.println("No hay jugadores eliminados.");
+            return;
+        }
+        System.out.println("Jugadores Eliminados:");
+        while (temp != null) {
+            System.out.println("Nombre: " + temp.nombre + ", Edad: " + temp.edad);
+            temp = temp.siguiente;
+        }
+    }
+
     // Clase interna NodoEliminado
-    private class NodoEliminado {
+    private static class NodoEliminado {
         String nombre;
         int edad;
         NodoEliminado siguiente;

@@ -1,68 +1,53 @@
 package Controller;
 
 import Model.ArbolBinario;
-import Model.ListaEnlazada;
 import Model.Nodo;
+
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TorneoController {
     private ArbolBinario arbol;
-    private ListaEnlazada listaEliminados;
+    private List<Nodo> jugadores;
 
     public TorneoController() {
         this.arbol = new ArbolBinario();
-        this.listaEliminados = new ListaEnlazada();
+        this.jugadores = new ArrayList<>();
     }
 
-    // Insertar jugador
     public void insertarJugador(int id, String nombre, int edad, int ranking, double puntuacionPromedio) {
-        arbol.insertar(id, nombre, edad, ranking, puntuacionPromedio);
+        Nodo nuevo = arbol.insertar(id, nombre, edad, ranking, puntuacionPromedio);
+        jugadores.add(nuevo);
     }
 
-    // Editar jugador
-    public boolean editarJugador(int id, int nuevaEdad, int nuevoRanking, double nuevaPuntuacion) {
-        return arbol.editarJugador(id, nuevaEdad, nuevoRanking, nuevaPuntuacion);
+    public void construirTorneo() {
+        arbol.construirTorneo(jugadores);
     }
 
-    // Eliminar jugador
-    public void eliminarJugador(int id) {
-        arbol.eliminar(id);
-        Nodo eliminado = arbol.buscar(id);
-        if (eliminado != null) {
-            listaEliminados.agregarEliminado(eliminado.nombre, eliminado.edad);
-        }
+    public void registrarResultado(Nodo partido, Nodo ganador) {
+        arbol.registrarResultado(partido, ganador);
     }
 
-    // Mostrar todos los jugadores
-    public void mostrarJugadores() {
-        arbol.mostrarArbol();
+    public String obtenerGanador() {
+        Nodo ganador = arbol.obtenerGanador();
+        return (ganador != null) ? ganador.nombre : null;
     }
 
-
-    // Registrar resultado de partido
-    public void registrarResultado(int idGanador, int idPerdedor) {
-        arbol.registrarResultado(idGanador, idPerdedor);
+    public Nodo getRaiz() {
+        return arbol.obtenerGanador();
     }
 
-    // Deshacer último resultado
-    public void deshacerResultado() {
-        arbol.deshacerResultado();
-        String resultado = arbol.obtenerUltimoResultado();
-        if (resultado != null) {
-            String[] partes = resultado.split(" - ");
-            String[] ganador = partes[0].split(": ");
-            String[] perdedor = partes[1].split(": ");
-            int idPerdedor = Integer.parseInt(perdedor[1]);
-            Nodo jugador = arbol.buscar(idPerdedor);
-            if (jugador != null) {
-                jugador.estado = "Activo";
-                listaEliminados.removerEliminado(jugador.nombre);
-                arbol.insertar(jugador.id, jugador.nombre, jugador.edad, jugador.ranking, jugador.puntuacionPromedio);
-            }
-        }
+    public DefaultMutableTreeNode getArbolComoNodo() {
+        return arbol.convertirArbolAVisual();
     }
 
-    // Verificar si un jugador existe por ID
-    public boolean jugadorExiste(int id) {
-        return arbol.buscar(id) != null;
+    public List<Nodo> getJugadores() {
+        return jugadores;
+    }
+
+    // Nuevo método para obtener partidos disponibles
+    public List<Nodo> obtenerPartidos() {
+        return arbol.obtenerPartidos();
     }
 }

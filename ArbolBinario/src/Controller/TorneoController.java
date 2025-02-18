@@ -16,10 +16,20 @@ public class TorneoController {
         this.jugadores = new ArrayList<>();
     }
 
-    public void insertarJugador(int id, String nombre, int edad, int ranking, double puntuacionPromedio) {
-        Nodo nuevo = arbol.insertar(id, nombre, edad, ranking, puntuacionPromedio);
+    public boolean insertarJugador(int id, String nombre) {
+        // Verificar si el ID ya existe en la lista de jugadores
+        for (Nodo jugador : jugadores) {
+            if (jugador.id == id) {
+                return false; // ID duplicado, no se puede agregar
+            }
+        }
+
+        // Insertar nuevo jugador
+        Nodo nuevo = arbol.insertar(id, nombre, 0, 0, 0);
         jugadores.add(nuevo);
+        return true;
     }
+
 
     public void construirTorneo() {
         arbol.construirTorneo(jugadores);
@@ -50,4 +60,16 @@ public class TorneoController {
     public List<Nodo> obtenerPartidos() {
         return arbol.obtenerPartidos();
     }
+    
+ // Método para editar un nodo existente
+    public boolean editarJugador(int id, String nuevoNombre) {
+        return arbol.editarNodo(id, nuevoNombre);
+    }
+
+
+    // Método para eliminar un nodo existente
+    public boolean eliminarJugador(int id) {
+        return arbol.eliminarNodo(id);
+    }
+
 }

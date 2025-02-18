@@ -40,6 +40,9 @@ public class TorneoGUI extends JFrame {
         JButton btnMostrarArbol = new JButton("Mostrar Árbol");
         JButton btnRegistrarResultado = new JButton("Registrar Resultado");
         JButton btnMostrarGanador = new JButton("Mostrar Ganador");
+     // Agregamos botones adicionales para Editar y Eliminar
+        JButton btnEditarJugador = new JButton("Editar Jugador");
+        JButton btnEliminarJugador = new JButton("Eliminar Jugador");
 
         // Asignar acciones a los botones
         btnAgregar.addActionListener(_ -> agregarJugador());
@@ -47,12 +50,16 @@ public class TorneoGUI extends JFrame {
         btnMostrarArbol.addActionListener(_ -> mostrarArbol());
         btnRegistrarResultado.addActionListener(_ -> registrarResultado());
         btnMostrarGanador.addActionListener(_ -> mostrarGanador());
+        btnEditarJugador.addActionListener(_ -> editarJugador());
+        btnEliminarJugador.addActionListener(_ -> eliminarJugador());
 
         panelBotones.add(btnAgregar);
         panelBotones.add(btnConstruirTorneo);
         panelBotones.add(btnMostrarArbol);
         panelBotones.add(btnRegistrarResultado);
         panelBotones.add(btnMostrarGanador);
+        panelBotones.add(btnEditarJugador);
+        panelBotones.add(btnEliminarJugador);
 
         // Agregar componentes a la ventana
         add(panel, BorderLayout.NORTH);
@@ -63,13 +70,21 @@ public class TorneoGUI extends JFrame {
         try {
             int id = Integer.parseInt(txtId.getText());
             String nombre = txtNombre.getText();
-            controller.insertarJugador(id, nombre, 0, 0, 0);
+
+            boolean agregado = controller.insertarJugador(id, nombre);
+            if (!agregado) {
+                JOptionPane.showMessageDialog(this, "Error: Ya existe un jugador con ese ID.");
+                return;
+            }
+
             JOptionPane.showMessageDialog(this, "Jugador agregado correctamente.");
             limpiarCampos();
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "ID debe ser un número válido.");
         }
     }
+
+
 
     private void mostrarArbol() {
         Nodo raiz = controller.getRaiz();
@@ -128,8 +143,17 @@ public class TorneoGUI extends JFrame {
 
     private void mostrarGanador() {
         String ganador = controller.obtenerGanador();
-        JOptionPane.showMessageDialog(this, ganador != null ? "El ganador es: " + ganador : "Aún no hay ganador.");
+
+        if (ganador != null) {
+            // Limpiar cualquier acumulación extra de "Ganador: "
+            ganador = ganador.replace("Ganador: ", "");
+
+            JOptionPane.showMessageDialog(this, "El ganador es: " + ganador);
+        } else {
+            JOptionPane.showMessageDialog(this, "Aún no hay ganador.");
+        }
     }
+
 
     private void limpiarCampos() {
         txtId.setText("");
@@ -139,5 +163,32 @@ public class TorneoGUI extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new TorneoGUI().setVisible(true));
     }
+ // Método para editar un jugador
+    private void editarJugador() {
+        try {
+            int id = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese ID del jugador a editar:"));
+            String nuevoNombre = JOptionPane.showInputDialog(this, "Nuevo nombre:");
+
+            boolean editado = controller.editarJugador(id, nuevoNombre);
+            String mensaje = editado ? "Jugador editado correctamente." : "Jugador no encontrado.";
+            JOptionPane.showMessageDialog(this, mensaje);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "ID inválido. Debe ser un número.");
+        }
+    }
+
+
+    // Método para eliminar un jugador
+    private void eliminarJugador() {
+        try {
+            int id = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese ID del jugador a eliminar:"));
+            boolean eliminado = controller.eliminarJugador(id);
+            String mensaje = eliminado ? "Jugador eliminado correctamente." : "Jugador no encontrado.";
+            JOptionPane.showMessageDialog(this, mensaje);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "ID inválido. Debe ser un número.");
+        }
+    }
+
 }
 

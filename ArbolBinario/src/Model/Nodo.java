@@ -3,6 +3,8 @@ package Model;
 public class Nodo {
     public int id;
     public String nombre;
+    
+    
     public int edad;
     public int ranking;
     public double puntuacionPromedio;
